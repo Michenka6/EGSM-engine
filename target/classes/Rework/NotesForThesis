@@ -1,0 +1,11 @@
+Model.GSM provides constructs to keep track of the activities being executed, regard- less of their complexity. Stages can be used to model atomic activities, process portions, and subprocesses. Since stages can be nested, they can be used to
+48
+4 E-Model.GSM: an Artifact-centric Language for Process Monitoring
+•
+•
+model which atomic activities compose a process portion or a subprocess. As running stages are marked as open, and stages not jet run or whose execu- tion completed are marked as closed, they can be used to keep track of which activities are executed, thus fulfilling LR1.
+Model.GSM provides constructs to determine from external data when activities are executed. Thanks to guards and milestones, it is possible to define expressions to detect, based on the data collected by the smart objects impersonating the artifacts, when activities are started or ended (i.e., when stages are opened or closed). Therefore, LR2 is fulfilled.
+Model.GSM is an artifact-centric language. This allows to model the process from the point of view of the artifacts. Consequently, the process is not only defined as a set of activities and dependencies among them, but also as a set of states that an artifact is supposed to assume, and transitions from one state to another one. This way, Model.GSM can keep track of both the activities being executed, and the states that artifacts assume, thus fulfilling LR3.
+
+
+Despite the previously discussed capabilities of Model.GSM that can help monitoring a process, Model.GSM cannot be used for monitoring as-is. In particular, it lacks constructs to explicitly define the expected execution flow, which are required to fulfill LR4: even though guards can be used to model the dependencies among stages, they will cause the associated stage to be opened as soon as the dependency is met. This is not desirable when the process is monitored, since the activity represented by that stage could not be executed even if the dependency is met. Additionally, Model.GSM also lacks constructs to define when activities represented by stages are incorrectly performed, which are required to fulfill LR5.

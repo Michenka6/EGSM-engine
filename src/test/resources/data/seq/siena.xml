@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ca:CompositeApplicationType xmlns:ca="http://siena.ibm.com/model/CompositeApplication"
+  version="2.0" name="application">
+  <ca:EventModel id="Definitions_1_eventModel" name="Definitions_1_eventModel">
+    <ca:Event id="Container_e" name="Container_e" />
+    <ca:Event id="Container_l" name="Container_l" />
+    <ca:Event id="Train_e" name="Train_e" />
+    <ca:Event id="Train_l" name="Train_l" />
+    <ca:Event id="Truck_e" name="Truck_e" />
+    <ca:Event id="Truck_l" name="Truck_l" />
+    <ca:Event id="EndEvent_1" name="EndEvent_1" />
+    <ca:Event id="StartEvent_1" name="StartEvent_1" />
+  </ca:EventModel>
+  <ca:Component id="model" name="model">
+    <ca:InformationModel id="infoModel" rootDataItemId="infoModel">
+      <ca:DataItem id="infoModel" rootElement="infoModel" schemaUri="data/infoModel.xsd" />
+    </ca:InformationModel>
+    <ca:GuardedStageModel>
+      <ca:Stage id="simpleSequence" name="Default Process">
+        <ca:DataFlowGuard eventIds="StartEvent_1" expression="Model.GSM.isEventOccurring(StartEvent_1)"
+          id="simpleSequence_dfg1" language="JEXL" name="simpleSequence Data Flow Guard 1" />
+        <ca:DataFlowGuard eventIds="Truck_e"
+          expression="(({infoModel./infoModel/Truck/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Truck_e)"
+          id="simpleSequence_dfg2" language="JEXL" name="simpleSequence Data Flow Guard 2" />
+        <ca:DataFlowGuard eventIds="Container_e"
+          expression="(({infoModel./infoModel/Truck/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Container_e)"
+          id="simpleSequence_dfg3" language="JEXL" name="simpleSequence Data Flow Guard 3" />
+        <ca:DataFlowGuard eventIds="Train_e"
+          expression="(({infoModel./infoModel/Train/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Train_e)"
+          id="simpleSequence_dfg4" language="JEXL" name="simpleSequence Data Flow Guard 4" />
+        <ca:DataFlowGuard eventIds="Container_e"
+          expression="(({infoModel./infoModel/Train/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Container_e)"
+          id="simpleSequence_dfg5" language="JEXL" name="simpleSequence Data Flow Guard 5" />
+        <ca:DataFlowGuard eventIds="EndEvent_1" expression="Model.GSM.isEventOccurring(EndEvent_1)"
+          id="simpleSequence_dfg6" language="JEXL" name="simpleSequence Data Flow Guard 6" />
+        <ca:Milestone eventIds="" id="simpleSequence_m1" name="simpleSequence Milestone 1">
+          <ca:Condition
+            expression="(Model.GSM.isMilestoneAchieved(LoadContainer_m1) or Model.GSM.isMilestoneAchieved(LoadContainer_m2)) and Model.GSM.isMilestoneAchieved(StartEvent_1_m1) and (Model.GSM.isMilestoneAchieved(UnloadContainer_m1) or Model.GSM.isMilestoneAchieved(UnloadContainer_m2)) and Model.GSM.isMilestoneAchieved(EndEvent_1_m1)"
+            id="simpleSequence_m1_c" language="JEXL" name="simpleSequence Milestone 1 Condition" />
+        </ca:Milestone>
+        <ca:SubStage id="LoadContainer" name="Load container on train">
+          <ca:DataFlowGuard eventIds="Train_e"
+            expression="(({infoModel./infoModel/Train/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Train_e)"
+            id="LoadContainer_dfg1" language="JEXL" name="LoadContainer Data Flow Guard 1" />
+          <ca:DataFlowGuard eventIds="Container_e"
+            expression="(({infoModel./infoModel/Train/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Container_e)"
+            id="LoadContainer_dfg2" language="JEXL" name="LoadContainer Data Flow Guard 2" />
+          <ca:Milestone eventIds="Container_l" id="LoadContainer_m1"
+            name="LoadContainer Milestone 1">
+            <ca:Condition
+              expression="(({infoModel./infoModel/Container/status} == [Steady])) and (({infoModel./infoModel/Train/status} == [Away])) and Model.GSM.isEventOccurring(Container_l)"
+              id="LoadContainer_m1_c" language="JEXL" name="LoadContainer Milestone 1 Condition" />
+          </ca:Milestone>
+          <ca:Milestone eventIds="Train_l" id="LoadContainer_m2" name="LoadContainer Milestone 2">
+            <ca:Condition
+              expression="(({infoModel./infoModel/Container/status} == [Steady])) and (({infoModel./infoModel/Train/status} == [Away])) and Model.GSM.isEventOccurring(Train_l)"
+              id="LoadContainer_m2_c" language="JEXL" name="LoadContainer Milestone 2 Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="LoadContainer_pfg"
+            name="Load container on train Process Flow Guard"
+            expression="not (Model.GSM.isMilestoneAchieved(LoadContainer_m1) or Model.GSM.isMilestoneAchieved(LoadContainer_m2)) and (Model.GSM.isMilestoneAchieved(UnloadContainer_m1) or Model.GSM.isMilestoneAchieved(UnloadContainer_m2))" />
+        </ca:SubStage>
+        <ca:SubStage id="StartEvent_1" name="Switch_request">
+          <ca:DataFlowGuard eventIds="StartEvent_1" expression="Model.GSM.isEventOccurring(StartEvent_1)"
+            id="StartEvent_1_dfg1" language="JEXL" name="StartEvent_1 Data Flow Guard 1" />
+          <ca:Milestone eventIds="StartEvent_1" id="StartEvent_1_m1" name="StartEvent_1 Milestone 1">
+            <ca:Condition expression="Model.GSM.isEventOccurring(StartEvent_1)" id="StartEvent_1_m1_c"
+              language="JEXL" name="StartEvent_1 Milestone 1 Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="StartEvent_1_pfg" name="Switch_request Process Flow Guard"
+            expression="not Model.GSM.isMilestoneAchieved(StartEvent_1_m1) " />
+        </ca:SubStage>
+        <ca:SubStage id="UnloadContainer" name="Unload container from truck">
+          <ca:DataFlowGuard eventIds="Truck_e"
+            expression="(({infoModel./infoModel/Truck/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Truck_e)"
+            id="UnloadContainer_dfg1" language="JEXL" name="UnloadContainer Data Flow Guard 1" />
+          <ca:DataFlowGuard eventIds="Container_e"
+            expression="(({infoModel./infoModel/Truck/status} == [Loading_platform])) and (({infoModel./infoModel/Container/status} == [Lifted])) and Model.GSM.isEventOccurring(Container_e)"
+            id="UnloadContainer_dfg2" language="JEXL" name="UnloadContainer Data Flow Guard 2" />
+          <ca:Milestone eventIds="Container_l" id="UnloadContainer_m1"
+            name="UnloadContainer Milestone 1">
+            <ca:Condition
+              expression="(({infoModel./infoModel/Container/status} == [Steady])) and (({infoModel./infoModel/Truck/status} == [Away])) and Model.GSM.isEventOccurring(Container_l)"
+              id="UnloadContainer_m1_c" language="JEXL" name="UnloadContainer Milestone 1 Condition" />
+          </ca:Milestone>
+          <ca:Milestone eventIds="Truck_l" id="UnloadContainer_m2"
+            name="UnloadContainer Milestone 2">
+            <ca:Condition
+              expression="(({infoModel./infoModel/Container/status} == [Steady])) and (({infoModel./infoModel/Truck/status} == [Away])) and Model.GSM.isEventOccurring(Truck_l)"
+              id="UnloadContainer_m2_c" language="JEXL" name="UnloadContainer Milestone 2 Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="UnloadContainer_pfg"
+            name="Unload container from truck Process Flow Guard"
+            expression="not (Model.GSM.isMilestoneAchieved(UnloadContainer_m1) or Model.GSM.isMilestoneAchieved(UnloadContainer_m2)) and Model.GSM.isMilestoneAchieved(StartEvent_1_m1)" />
+        </ca:SubStage>
+        <ca:SubStage id="EndEvent_1" name="Switch_complete">
+          <ca:DataFlowGuard eventIds="EndEvent_1" expression="Model.GSM.isEventOccurring(EndEvent_1)"
+            id="EndEvent_1_dfg1" language="JEXL" name="EndEvent_1 Data Flow Guard 1" />
+          <ca:Milestone eventIds="EndEvent_1" id="EndEvent_1_m1" name="EndEvent_1 Milestone 1">
+            <ca:Condition expression="Model.GSM.isEventOccurring(EndEvent_1)" id="EndEvent_1_m1_c"
+              language="JEXL" name="EndEvent_1 Milestone 1 Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="EndEvent_1_pfg" name="Switch_complete Process Flow Guard"
+            expression="not Model.GSM.isMilestoneAchieved(EndEvent_1_m1)  and (Model.GSM.isMilestoneAchieved(LoadContainer_m1) or Model.GSM.isMilestoneAchieved(LoadContainer_m2))" />
+        </ca:SubStage>
+      </ca:Stage>
+      <ca:Stage id="Container_LC" name="Container LifeCycle">
+        <ca:DataFlowGuard eventIds="Container_l" expression="true" id="Container_dfg1"
+          language="JEXL" name="Container Data Flow Guard" />
+        <ca:Milestone id="Container_m1" name="Container Milestone">
+          <ca:Condition expression="false" id="Container_m1_c" language="JEXL"
+            name="Container Milestone Condition" />
+        </ca:Milestone>
+        <ca:SubStage id="Container_Lifted" name="Lifted">
+          <ca:DataFlowGuard eventIds="Container_l"
+            expression="({infoModel./infoModel/Container/status} == [Lifted]) and Model.GSM.isEventOccurring(Container_l)"
+            id="Container_Lifted_dfg1" language="JEXL" name="Lifted Data Flow Guard" />
+          <ca:Milestone eventIds="Container_e" id="Container_Lifted_m1" name="Lifted Milestone">
+            <ca:Condition
+              expression="not ({infoModel./infoModel/Container/status} == [Lifted]) and Model.GSM.isEventOccurring(Container_e)"
+              id="Container_Lifted_m1_c" language="JEXL" name="Lifted Milestone Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="Container_Lifted_pfg1" name="Lifted Process Flow Guard"
+            expression="Model.GSM.isStageActive(Container_Steady) or (not (Model.GSM.isStageActive(Container_Steady) or Model.GSM.isStageActive(Container_error)))" />
+        </ca:SubStage>
+        <ca:SubStage id="Container_Steady" name="Steady">
+          <ca:DataFlowGuard eventIds="Container_l"
+            expression="({infoModel./infoModel/Container/status} == [Steady]) and Model.GSM.isEventOccurring(Container_l)"
+            id="Container_Steady_dfg1" language="JEXL" name="Steady Data Flow Guard" />
+          <ca:Milestone eventIds="Container_e" id="Container_Steady_m1" name="Steady Milestone">
+            <ca:Condition
+              expression="not ({infoModel./infoModel/Container/status} == [Steady]) and Model.GSM.isEventOccurring(Container_e)"
+              id="Container_Steady_m1_c" language="JEXL" name="Steady Milestone Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard id="Container_Steady_pfg1" name="Steady Process Flow Guard"
+            expression="Model.GSM.isStageActive(Container_Lifted)" />
+        </ca:SubStage>
+        <ca:SubStage id="Container_error" name="Container error">
+          <ca:DataFlowGuard
+            expression="not (({infoModel./infoModel/Container/status} == [Lifted]) or ({infoModel./infoModel/Container/status} == [Steady])) and Model.GSM.isEventOccurring(Container_l)"
+            id="Container_error_dfg1" language="JEXL" name="Container Error Data Flow Guard" />
+          <ca:Milestone id="Container_error_m1" name="Container Error Milestone">
+            <ca:Condition
+              expression="(({infoModel./infoModel/Container/status} == [Lifted]) or ({infoModel./infoModel/Container/status} == [Steady])) and Model.GSM.isEventOccurring(Container_e)"
+              id="Container_error_m1_c" language="JEXL" name="Container Error Milestone Condition" />
+          </ca:Milestone>
+          <ca:ProcessFlowGuard type="application:DataFlowGuardType" expression="false"
+            id="Container_error_pfg1" language="JEXL" name="Container Error Process Flow Guard" />
+        </ca:SubStage>
+        <ca:SubStage id="Container_final" name="Container final">
+          <ca:DataFlowGuard expression="(Model.GSM.isStageActive(Container_Steady))"
+            id="Container_final_dfg1" language="JEXL" name="Container Final Data Flow Guard" />
+          <ca:Milestone id="Container_final_m1" name="Container Final Milestone">
+            <ca:Condition expression="not (Model.GSM.isStageActive(Container_Steady))"
+              id="Container_final_m1_c" language="JEXL" name="Container Final Milestone Condition" />
+          </ca:Milestone>
+        </ca:SubStage>
+      </ca:Stage>
+    </ca:GuardedStageModel>
+  </ca:Component>
+</ca:CompositeApplicationType>
